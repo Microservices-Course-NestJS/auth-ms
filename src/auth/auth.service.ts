@@ -3,17 +3,43 @@ import { RpcException } from '@nestjs/microservices';
 import { LoginUserDTO, RegisterUserDTO } from './dto';
 import { PrismaClient } from '../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
+import { envs } from 'src/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
     private readonly logger = new Logger('AuthService')
-
+    constructor(
+        private readonly JwtService: JwtService
+    ){
+        super()
+    }
     async onModuleInit() {
         await this.$connect();
         this.logger.log('MongoDB connected')
     }
+    async verifyToken(token: string){
+        try {
+            
+            const {sub, iat, exp, ...user} = this.JwtService.verify(token,{
+                secret: envs.jwtSecret
+            })
 
+            return{
+                user: user,
+                token: await this.signJwt(user)
+            }
 
+        } catch (error) {
+            throw new RpcException({
+                status: 401,
+                message: `Invalid token`
+            })
+        }
+    }
+    async signJwt(payload:any){
+        return this.JwtService.sign(payload)
+    }
 
     async registerUser(registerUserDto: RegisterUserDTO) {
         const { email, name, password } = registerUserDto;
@@ -38,7 +64,8 @@ export class AuthService extends PrismaClient implements OnModuleInit {
             })
             const { password: __, ...rest } = user
             return {
-                rest
+                user: rest,
+                token: await this.signJwt(rest)
             }
         } catch (error) {
             if (error instanceof Error) {
@@ -80,7 +107,7 @@ export class AuthService extends PrismaClient implements OnModuleInit {
 
             return {
                 user: rest,
-                token: 'ABC'
+                token: await this.signJwt(rest)
             }
 
 
