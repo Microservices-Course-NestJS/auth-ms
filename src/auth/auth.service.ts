@@ -1,10 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { LoginUserDTO, RegisterUserDTO } from './dto';
-import { PrismaClient } from '../generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import { envs } from 'src/common';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaClient } from 'generated/prisma/client';
 
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
@@ -120,9 +120,6 @@ export class AuthService extends PrismaClient implements OnModuleInit {
             }
             throw new RpcException({ error })
         }
-
-
-
     }
 
 
