@@ -1,7 +1,7 @@
 # ======================
 # 1. Dependencias DEV
 # ======================
-FROM node:22.19-alpine3.22 AS deps
+FROM node:22-alpine AS deps
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci
@@ -9,7 +9,7 @@ RUN npm ci
 # ======================
 # 2. Builder
 # ======================
-FROM node:22.19-alpine3.22 AS build
+FROM node:22-alpine AS build
 WORKDIR /usr/src/app
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
@@ -21,7 +21,7 @@ RUN npm run build
 # ======================
 # 3. Dependencias PROD (separado del build)
 # ======================
-FROM node:22.19-alpine3.22 AS prod-deps
+FROM node:22-alpine AS prod-deps
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci --omit=dev
@@ -32,7 +32,7 @@ COPY --from=build /usr/src/app/node_modules/@prisma ./node_modules/@prisma
 # ======================
 # 4. Producción
 # ======================
-FROM node:22.19-alpine3.22 AS prod
+FROM node:22-alpine AS prod
 WORKDIR /usr/src/app
 
 COPY --from=prod-deps /usr/src/app/node_modules ./node_modules
